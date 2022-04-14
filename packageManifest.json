@@ -1,0 +1,28 @@
+{
+  "packageName": "MQTT Link",
+  "author": "Chris Lawson",
+  "version": "2.0.0",
+  "minimumHEVersion": "2.1.2",
+  "dateReleased": "2020-05-24",
+  "documentationLink": "https://github.com/mydevbox/hubitat-mqtt-link/blob/master/README.md",
+	"communityLink": "https://community.hubitat.com/t/release-hubitat-mqtt-link/41846",
+  "apps": [
+    {
+      "id": "a8a93d71-a62a-4c44-b286-42e8a425eea5",
+      "name": "MQTT Link",
+      "namespace": "mydevbox",
+      "location": "https://raw.githubusercontent.com/mydevbox/hubitat-mqtt-link/master/apps/hubitat-mqtt-link-app.groovy",
+      "required": true,
+      "oauth": false
+    }
+  ],
+  "drivers": [
+    {
+      "id": "fd41655b-e22c-496e-9895-11792402a7c0",
+      "name": "MQTT Link Driver",
+      "namespace": "mydevbox",
+      "location": "https://raw.githubusercontent.com/mydevbox/hubitat-mqtt-link/master/drivers/hubitat-mqtt-link-driver.groovy",
+      "required": true
+    }
+  ]
+}

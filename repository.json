@@ -1,0 +1,12 @@
+{
+  "author": "Chris Lawson",
+  "gitHubUrl": "https://github.com/mydevbox",
+  "packages": [
+    {
+      "name": "MQTT Link",
+      "category": "Integrations",
+      "location": "https://raw.githubusercontent.com/mydevbox/hubitat-mqtt-link/master/packageManifest.json",
+      "description": "System to share and control Hubitat Elevation device states in MQTT"
+    }
+  ]
+}
