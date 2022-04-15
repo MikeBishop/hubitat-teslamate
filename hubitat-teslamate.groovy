@@ -261,6 +261,7 @@ def parse(String event) {
                     // Convert temperature formats
                     value = celsiusToFahrenheit(value)
                 }
+                value = value.round(1)
                 if( settings?.temperatureIndoor ^ property == "outside_temp" ) {
                     toProcess.add([
                         "name": "temperature",
@@ -277,9 +278,11 @@ def parse(String event) {
             case "rated_battery_range":
             case "ideal_battery_range":
             case "odometer":
+                value = Float.parseFloat(value)
                 if( settings?.rangeFormat == "miles (mi)" ) {
-                    value = Float.parseFloat(value) / 1.609344
+                    value = value / 1.609344
                 }
+                value = value.round()
                 break
         }
         toProcess.add([name: property, value: value])
