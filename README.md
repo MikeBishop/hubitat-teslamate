@@ -8,8 +8,9 @@ WebSocket client active at a time, and that position is already occupied for me
 by running TeslaMate 1.
 
 But wait! TeslaMate exposes a fairly rich MQTT surface, which I'm already
-consuming in another project, MMM-Powerwall. Hubitat has an MQTT client in-box.
-Thus was a potential match and solution made.
+consuming in another project,
+[MMM-Powerwall](https://github.com/MikeBishop/MMM-Powerwall). Hubitat has an
+MQTT client in-box. Thus was a potential match and solution made.
 
 Not yet available through HPM, but I plan to do that after a few others have
 banged on it or I've let it bake for a while on my system. In the meantime, I'd
@@ -19,9 +20,11 @@ install the right bits.
 What you need:
 
 - One or more Tesla vehicles on your Tesla account; nothing to do otherwise!
-- A working install of TeslaMate, with the MQTT server reachable from the Hubitat
+- A working install of [TeslaMate](https://github.com/adriankumpf/teslamate),
+  with the MQTT server reachable from the Hubitat
 - Install the two drivers from this repo on your Hubitat
-- Configure a new virtual device with the TeslaMate driver and point it to your MQTT server
+- Configure a new virtual device with the TeslaMate driver and point it to your
+  MQTT server
 
 It will pick up the vehicle(s) TeslaMate is issuing data about and create the
 child devices using the other driver, including renaming the child device
@@ -113,8 +116,7 @@ Be aware that Detailed Location is very chatty while driving; what you want to
 do can probably be done by defining a geofence in TeslaMate instead.
 
 
-# Release Notes
+# Change Log
 
-### Release 0.1.0
-* Initial release
+* [4/15/2022] Initial release
 
