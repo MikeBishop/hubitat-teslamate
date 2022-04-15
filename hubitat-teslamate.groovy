@@ -9,7 +9,12 @@
 import groovy.transform.Field
 
 metadata {
-    definition (name: "TeslaMate", namespace: "evequefou", author: "Mike Bishop") {
+    definition (
+        name: "TeslaMate",
+        namespace: "evequefou",
+        author: "Mike Bishop",
+        importUrl: "https://raw.githubusercontent.com/MikeBishop/hubitat-teslamate/main/hubitat-teslamate.groovy"
+    ) {
         capability "Initialize"
 
         // Provided for broker setup and troubleshooting

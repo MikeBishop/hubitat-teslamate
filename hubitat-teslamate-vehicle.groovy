@@ -5,7 +5,13 @@
 import groovy.transform.Field
 
 metadata {
-    definition(name: "TeslaMate Vehicle", namespace: "evequefou", author: "Mike Bishop", component: false) {
+    definition(
+        name: "TeslaMate Vehicle",
+        namespace: "evequefou",
+        author: "Mike Bishop",
+        component: false,
+        importUrl: "https://raw.githubusercontent.com/MikeBishop/hubitat-teslamate/main/hubitat-teslamate-vehicle.groovy"
+    ) {
 // Always Available
         capability "PresenceSensor"
         attribute "geofence", "STRING"
