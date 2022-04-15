@@ -44,7 +44,6 @@ metadata {
 // Security
         capability "ContactSensor"
         capability "Lock"
-        attribute "locked", "ENUM", ["true", "false"]
         attribute "sentry_mode", "ENUM", ["true", "false"]
 
 // Coarse Location & Driving

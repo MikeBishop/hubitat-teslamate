@@ -98,7 +98,6 @@ The groups are:
 - Security
    -  capability "ContactSensor"
    -  capability "Lock"
-   -  attribute "locked"
    -  attribute "sentry_mode"
 
 - Coarse Driving
