@@ -1,5 +1,5 @@
 /*
-    Hubitat-Teslamate MQTT Integration
+    Hubitat-TeslaMate MQTT Integration
     Copyright 2022 Mike Bishop,  All Rights Reserved
 
     Based on:
@@ -8,7 +8,9 @@
 */
 
 metadata {
-    definition (name: "Teslamate", namespace: "evequefou", author: "Mike Bishop") {
+    definition (name: "TeslaMate", namespace: "evequefou", author: "Mike Bishop") {
+        capability "Initialize"
+
         // Provided for broker setup and troubleshooting
 		command "connect"
 		command "disconnect"
@@ -68,7 +70,7 @@ metadata {
 }
 
 void initialize() {
-    debug("Initializing TeslaMate connection...")
+    info("Initializing TeslaMate connection...")
 
     try {
         interfaces.mqtt.connect(getBrokerUri(),
@@ -88,7 +90,12 @@ void initialize() {
 }
 
 void updated() {
+    disconnect()
     initialize()
+}
+
+void configured() {
+    updated()
 }
 
 // ========================================================
@@ -124,7 +131,7 @@ def parse(String event) {
     def cd = getChildDevice("${thisId}-${id}")
     if (!cd) {
         // Child device doesn't exist; need to create it.
-        cd = addChildDevice("evequefou", "Teslamate Vehicle", "${thisId}-${id}", [name: "TeslaMate Vehicle ${id}", isComponent: false])
+        cd = addChildDevice("evequefou", "TeslaMate Vehicle", "${thisId}-${id}", [name: "TeslaMate Vehicle ${id}", isComponent: false])
     }
 
     // Display name must be set from the parent device, not the child
@@ -137,7 +144,11 @@ def parse(String event) {
 }
 
 def mqttClientStatus(status) {
-    debug("[d:mqttClientStatus] status: ${status}")
+    info("MQTT ${status}")
+    if( status.startsWith("Error") ) {
+        runIn(status.reconnectDelay, "connect")
+        status.reconnectDelay *= 2
+    }
 }
 
 // ========================================================
@@ -147,6 +158,7 @@ def mqttClientStatus(status) {
 def connected() {
     debug("[d:connected] Connected to broker")
     state.connectionState = "connected"
+    state.reconnectDelay = 1
     sendEvent (name: "connectionState", value: "connected")
 }
 
