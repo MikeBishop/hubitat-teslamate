@@ -430,7 +430,7 @@ def error(msg) {
 @Field final Map Transforms = [
     battery_level: "battery",
     charger_voltage: "voltage",
-    charger_actual_current: "current",
+    charger_actual_current: "amperage",
     charger_phases: "phases",
     locked: "lock",
     est_battery_range_km: "est_battery_range",

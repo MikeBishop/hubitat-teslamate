@@ -30,6 +30,7 @@ metadata {
         capability "VoltageMeasurement"
         capability "CurrentMeter"
         capability "PowerMeter"
+        attribute "phases", "NUMBER"
         attribute "est_battery_range", "NUMBER"
         attribute "rated_battery_range", "NUMBER"
         attribute "ideal_battery_range", "NUMBER"
@@ -109,14 +110,18 @@ void parse(List description) {
                 ])
                 break
             case "voltage":
-            case "current":
+            case "amperage":
             case "phases":
-                state[it.name] = it.value
+                it.value = Float.parseFloat(it.value)
                 sendEvent(it)
-                if( state?.voltage && state?.amperage && state?.phases ) {
+                def voltage = it.name == "voltage" ? it.value : device.currentValue("voltage")
+                def amperage = it.name == "amperage" ? it.value : device.currentValue("amperage")
+                def phases = it.name == "phases" ? it.value : device.currentValue("phases")
+
+                if( voltage && amperage && phases ) {
                     sendEvent([
                         "name": "power",
-                        "value": state?.voltage * state?.amperage * state?.phases
+                        "value": voltage * amperage * phases
                     ])
                 }
                 break
