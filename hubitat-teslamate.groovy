@@ -16,6 +16,7 @@ metadata {
         importUrl: "https://raw.githubusercontent.com/MikeBishop/hubitat-teslamate/main/hubitat-teslamate.groovy"
     ) {
         capability "Initialize"
+        capability "Configuration"
 
         // Provided for broker setup and troubleshooting
 		command "connect"
@@ -194,7 +195,7 @@ void updated() {
     initialize()
 }
 
-void configured() {
+void configure() {
     updated()
 }
 
