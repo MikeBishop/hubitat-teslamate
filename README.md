@@ -96,9 +96,14 @@ The groups are:
    - attribute "is_preconditioning"
 
 - Security
-   -  capability "ContactSensor"
-   -  capability "Lock"
-   -  attribute "sentry_mode"
+   - capability "ContactSensor"
+   - capability "Lock"
+   - attribute "sentry_mode"
+   - attribute "windows_open"
+   - attribute "doors_open"
+   - attribute "frunk_open"
+   - attribute "trunk_open"
+
 
 - Coarse Driving
    - attribute "shift_state"

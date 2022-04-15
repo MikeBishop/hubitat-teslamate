@@ -50,6 +50,10 @@ metadata {
 // Security
         capability "ContactSensor"
         capability "Lock"
+        attribute "windows_open", "ENUM", ["true", "false"]
+        attribute "doors_open", "ENUM", ["true", "false"]
+        attribute "frunk_open", "ENUM", ["true", "false"]
+        attribute "trunk_open", "ENUM", ["true", "false"]
         attribute "sentry_mode", "ENUM", ["true", "false"]
 
 // Coarse Location & Driving
