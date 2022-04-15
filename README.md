@@ -5,7 +5,7 @@ polling-heavy and not really something I wanted running on my hub. The WebSocket
 API is complex to implement and I've done almost nothing in Groovy prior, so I
 didn't really want to go down that road again. Plus you can only have one
 WebSocket client active at a time, and that position is already occupied for me
-by running TeslaMate 1.
+by running TeslaMate.
 
 But wait! TeslaMate exposes a fairly rich MQTT surface, which I'm already
 consuming in another project,
