@@ -365,7 +365,6 @@ def error(msg) {
     "battery_level",
     "plugged_in",
     "state",
-    "since",
     "healthy",
     "version",
     "update_available",

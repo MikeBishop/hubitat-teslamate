@@ -66,7 +66,6 @@ The groups are:
    - capability "Battery"
    - capability "PowerSource"
    - attribute "state"
-   - attribute "since"
    - attribute "healthy"
    - attribute "version"
    - attribute "update_available"

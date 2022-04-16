@@ -18,7 +18,6 @@ metadata {
         capability "Battery"
         capability "PowerSource"
         attribute "state", "STRING"
-        attribute "since", "DATE"
         attribute "healthy", "ENUM", ["true", "false"]
         attribute "version", "STRING"
         attribute "update_available", "ENUM", ["true", "false"]
