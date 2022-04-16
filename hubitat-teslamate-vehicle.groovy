@@ -94,9 +94,9 @@ void installed() {
 
 void parse(String description) { log.warn "parse(String description) not implemented" }
 
-void lock() { log.warn "lock not implemented" }
+void lock() { log.warn "lock not supported" }
 
-void unlock() { log.warn "unlock not implemented" }
+void unlock() { log.warn "unlock not supported" }
 
 void parse(List description) {
     description.each {
