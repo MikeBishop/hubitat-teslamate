@@ -129,11 +129,11 @@ void parse(List description) {
             case "doors_open":
             case "frunk_open":
             case "trunk_open":
-                state[it.name] = it.value
                 def open_things = ["windows_open", "doors_open", "frunk_open", "trunk_open"]
                 def contact = "closed"
                 for( thing in open_things) {
-                    if( state[thing] == "true"){
+                    def status = it.name == thing ? it.value : device.currentValue(thing)
+                    if( status == "true"){
                         contact = "open"
                         break;
                     }
