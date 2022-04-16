@@ -112,7 +112,7 @@ void parse(List description) {
             case "voltage":
             case "amperage":
             case "phases":
-                it.value = Float.parseFloat(it.value)
+                it.value = Integer.parseInt(it.value)
                 sendEvent(it)
                 def voltage = it.name == "voltage" ? it.value : device.currentValue("voltage")
                 def amperage = it.name == "amperage" ? it.value : device.currentValue("amperage")
