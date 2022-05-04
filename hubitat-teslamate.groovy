@@ -187,6 +187,7 @@ void initialize() {
         connected()
     } catch(Exception e) {
         error("[d:initialize] ${e}")
+        reconnect()
     }
 }
 
@@ -215,6 +216,12 @@ def disconnect() {
         warn("Disconnection from broker failed", ${e.message})
         if (interfaces.mqtt.isConnected()) connected()
     }
+}
+
+def reconnect() {
+    disconnect()
+    runIn(status.reconnectDelay, "connect")
+    status.reconnectDelay *= 2
 }
 
 // ========================================================
@@ -294,8 +301,7 @@ def parse(String event) {
 def mqttClientStatus(status) {
     info("MQTT ${status}")
     if( status.startsWith("Error") ) {
-        runIn(status.reconnectDelay, "connect")
-        status.reconnectDelay *= 2
+        reconnect()
     }
 }
 
@@ -308,6 +314,7 @@ def connected() {
     state.connectionState = "connected"
     state.reconnectDelay = 1
     sendEvent (name: "connectionState", value: "connected")
+    runIn(24 * 60 * 60, "reconnect")
 }
 
 def disconnected() {

@@ -111,17 +111,21 @@ void parse(List description) {
             case "voltage":
             case "amperage":
             case "phases":
-                it.value = Integer.parseInt(it.value)
+                it.value = it.value ? Integer.parseInt(it.value) : 0
                 sendEvent(it)
                 def voltage = it.name == "voltage" ? it.value : device.currentValue("voltage")
                 def amperage = it.name == "amperage" ? it.value : device.currentValue("amperage")
                 def phases = it.name == "phases" ? it.value : device.currentValue("phases")
 
                 if( voltage && amperage && phases ) {
-                    sendEvent([
-                        "name": "power",
-                        "value": voltage * amperage * phases
-                    ])
+                    def currentPower = device.currentValue("power")
+                    def newPower = voltage * amperage * phases
+                    if (currentPower && Math.abs(currentPower - newPower) > 100 ) {
+                        sendEvent([
+                            "name": "power",
+                            "value": newPower
+                        ])
+                    }
                 }
                 break
             case "windows_open":

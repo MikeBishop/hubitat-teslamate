@@ -103,7 +103,6 @@ The groups are:
    - attribute "frunk_open"
    - attribute "trunk_open"
 
-
 - Coarse Driving
    - attribute "shift_state"
    - attribute "odometer"
@@ -122,4 +121,6 @@ do can probably be done by defining a geofence in TeslaMate instead.
 # Change Log
 
 * [4/15/2022] Initial release
+* [4/25/2022] Filter small changes (<100W) in power levels to reduce event
+  frequency
 
