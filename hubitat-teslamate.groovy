@@ -220,8 +220,8 @@ def disconnect() {
 
 def reconnect() {
     disconnect()
-    runIn(status.reconnectDelay, "connect")
-    status.reconnectDelay *= 2
+    runIn(state.reconnectDelay, "connect")
+    state.reconnectDelay *= 2
 }
 
 // ========================================================
