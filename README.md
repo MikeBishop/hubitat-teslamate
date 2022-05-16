@@ -123,4 +123,4 @@ do can probably be done by defining a geofence in TeslaMate instead.
 * [4/15/2022] Initial release
 * [4/25/2022] Filter small changes (<100W) in power levels to reduce event
   frequency
-
+* [5/15/2022] Bugfixes

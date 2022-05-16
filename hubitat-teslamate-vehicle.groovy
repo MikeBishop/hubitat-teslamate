@@ -120,7 +120,9 @@ void parse(List description) {
                 if( voltage && amperage && phases ) {
                     def currentPower = device.currentValue("power")
                     def newPower = voltage * amperage * phases
-                    if (currentPower && Math.abs(currentPower - newPower) > 100 ) {
+                    if (currentPower &&
+                        ( newPower < 1000 || Math.abs(currentPower - newPower) > 100 )
+                    ) {
                         sendEvent([
                             "name": "power",
                             "value": newPower
