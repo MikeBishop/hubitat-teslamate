@@ -120,14 +120,18 @@ void parse(List description) {
                 if( voltage != null && amperage != null && phases != null ) {
                     def currentPower = device.currentValue("power")
                     def newPower = voltage * amperage * phases
-                    if (currentPower &&
+                    def result = [ "name": "power", "value": newPower ]
+                    if (currentPower != null &&
                         ( newPower < 1000 || Math.abs(currentPower - newPower) > 100 )
                     ) {
-                        sendEvent([
-                            "name": "power",
-                            "value": newPower
-                        ])
+                        sendEvent(result)
                     }
+                    else {
+                        debug("Suppressing ${result} as too similar to ${currentPower}")
+                    }
+                }
+                else {
+                    debug("Not enough information for power; voltage ${voltage}, amperage ${amperage}, phases ${phases}")
                 }
                 break
             case "windows_open":
