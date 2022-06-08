@@ -117,7 +117,7 @@ void parse(List description) {
                 def amperage = it.name == "amperage" ? it.value : device.currentValue("amperage")
                 def phases = it.name == "phases" ? it.value : device.currentValue("phases")
 
-                if( voltage && amperage && phases ) {
+                if( voltage != null && amperage != null && phases != null ) {
                     def currentPower = device.currentValue("power")
                     def newPower = voltage * amperage * phases
                     if (currentPower &&
