@@ -389,7 +389,6 @@ def error(msg) {
     "rated_battery_range",
     "ideal_battery_range",
     "usable_battery_level",
-    "charge_energy_added",
     "charge_limit_soc",
     "charge_port_door_open",
     "charge_current_request",

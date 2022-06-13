@@ -81,7 +81,6 @@ The groups are:
    - attribute "rated_battery_range"
    - attribute "ideal_battery_range"
    - attribute "usable_battery_level"
-   - attribute "charge_energy_added"
    - attribute "charge_limit_soc"
    - attribute "charge_port_door_open"
    - attribute "charge_current_request"
@@ -127,4 +126,4 @@ do can probably be done by defining a geofence in TeslaMate instead.
   reconnect
 * [5/15/2022] Bugfixes
 * [6/7/2022]  Fix bug that caused "power" not to publish consistently
-
+* [6/13/2022] Remove `charge_energy_added` to reduce event load
