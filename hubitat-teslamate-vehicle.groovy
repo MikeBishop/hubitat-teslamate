@@ -112,8 +112,11 @@ void parse(List description) {
             case "amperage":
             case "phases":
                 it.value = it.value ? Integer.parseInt(it.value) : 0
-                sendEvent(it)
-                def voltage = it.name == "voltage" ? it.value : device.currentValue("voltage")
+                def oldVoltage = device.currentValue("voltage") ?: 0
+                if( it.name != "voltage" || Math.abs(it.value - oldVoltage) > (0.01 * oldVoltage)) {
+                    sendEvent(it)
+                }
+                def voltage = it.name == "voltage" ? it.value : oldVoltage
                 def amperage = it.name == "amperage" ? it.value : device.currentValue("amperage")
                 def phases = it.name == "phases" ? it.value : device.currentValue("phases")
 
