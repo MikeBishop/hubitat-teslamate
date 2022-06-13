@@ -34,7 +34,6 @@ metadata {
         attribute "rated_battery_range", "NUMBER"
         attribute "ideal_battery_range", "NUMBER"
         attribute "usable_battery_level", "NUMBER"
-        attribute "charge_energy_added", "NUMBER"
         attribute "charge_limit_soc", "NUMBER"
         attribute "charge_port_door_open", "ENUM", ["true", "false"]
         attribute "charge_current_request", "NUMBER"
