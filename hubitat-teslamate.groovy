@@ -213,7 +213,7 @@ def disconnect() {
         interfaces.mqtt.disconnect()
         disconnected()
     } catch(e) {
-        warn("Disconnection from broker failed", ${e.message})
+        warn("Disconnection from broker failed, ${e.message}")
         if (interfaces.mqtt.isConnected()) connected()
     }
 }

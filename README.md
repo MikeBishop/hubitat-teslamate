@@ -127,3 +127,4 @@ do can probably be done by defining a geofence in TeslaMate instead.
 * [5/15/2022] Bugfixes
 * [6/7/2022]  Fix bug that caused "power" not to publish consistently
 * [6/13/2022] Remove `charge_energy_added` to reduce event load
+* [8/17/2022] Fix bug in disconnect error handling
