@@ -286,9 +286,20 @@ def parse(String event) {
                 }
                 break
             case "geofence":
+                def newPresence = value == settings?.homeGeofence ? "present" : "not present"
+                if( areaPresence &&
+                    cd.currentValue("presence") == "present" &&
+                    newPresence == "not present" )
+                {
+                    runIn(3600, "startProximityCheck", [
+                        data: [
+                            vehicleId: id
+                        ]
+                    ])
+                }
                 toProcess.add([
                     "name": "presence",
-                    "value": value == settings?.homeGeofence ? "present" : "not present"
+                    "value": newPresence
                 ])
                 break
 
@@ -416,7 +427,7 @@ def handleLocationEvent(data) {
     def c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     def distance = R * c; // distance in km
 
-    // If the car is within 180 km, set the area presence sensor to true
+    // If the car is within 130 km, set the area presence sensor to true
     def areaPresenceId = "${data.childId}-areaPresence"
     def areaPresence = getChildDevice(areaPresenceId)
     if( !areaPresence ) {
@@ -433,14 +444,18 @@ def handleLocationEvent(data) {
         [name: "presence", value: distance < 130 ? "present" : "not present"]
     ])
 
-    // Determine the update period.
-    def numHoursAway = Math.max( (distance / 130) - 1, 1)
-    debug("[d:handleLocationEvent] distance: ${distance}, numHoursAway: ${numHoursAway}")
-    runIn((long) (60 * 60 * numHoursAway), "startProximityCheck", [
-        data: [
-            vehicleId: vehicleId
-        ]
-    ])
+    // Determine the update period, unless car is at home.
+    // (If it's at home, we'll next check an hour after it departs.)
+    if( cd.currentValue("geofence") != settings?.homeGeofence ) {
+        def numHoursAway = distance / 130
+        def timeToNextCheck = Math.max( Math.abs(numHoursAway - 1), 0.1 )
+        debug("[d:handleLocationEvent] distance: ${distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
+        runIn((long) (60 * 60 * timeToNextCheck), "startProximityCheck", [
+            data: [
+                vehicleId: vehicleId
+            ]
+        ])
+    }
 }
 
 def componentRefresh(child) {
