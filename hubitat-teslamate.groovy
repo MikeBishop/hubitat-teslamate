@@ -420,7 +420,7 @@ def handleLocationEvent(data) {
     final int R = 6371; // Radius of the earth
 
     def latDistance = Math.toRadians(homeLat - carLat);
-    def lonDistance = Math.toRadians(homeLat - carLat);
+    def lonDistance = Math.toRadians(homeLon - carLon);
     def a = (Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
             + Math.cos(Math.toRadians(carLat)) * Math.cos(Math.toRadians(homeLat))
             * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2))
@@ -449,12 +449,15 @@ def handleLocationEvent(data) {
     if( cd.currentValue("geofence") != settings?.homeGeofence ) {
         def numHoursAway = distance / 130
         def timeToNextCheck = Math.max( Math.abs(numHoursAway - 1), 0.1 )
-        debug("[d:handleLocationEvent] distance: ${distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
+        debug("[d:handleLocationEvent] distance: ${(int) distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
         runIn((long) (60 * 60 * timeToNextCheck), "startProximityCheck", [
             data: [
                 vehicleId: vehicleId
             ]
         ])
+    }
+    else {
+        debug("[d:handleLocationEvent] No check scheduled; car is at home")
     }
 }
 
