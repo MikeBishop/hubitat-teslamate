@@ -144,6 +144,13 @@ metadata {
             }
         }
         input(
+            name: "areaPresence",
+            type: "bool",
+            title: "Create presence device for larger area",
+            required: false,
+            default: false
+        )
+        input(
             name: "debugLogging",
             type: "bool",
             title: "Enable debug logging",
@@ -181,8 +188,30 @@ void initialize() {
 
         for( topic in subscriptions ) {
             def fullTopic = "${getTopicPrefix()}+/${topic}"
-            debug("[d:subscribe] full topic: ${fullTopic}")
+            debug("[d:initialize] full topic: ${fullTopic}")
             interfaces.mqtt.subscribe(fullTopic)
+        }
+
+        if( areaPresence ) {
+            // Need to identify all known vehicles and start the check
+            def thisId = device.deviceNetworkId
+            def childIds = getChildDevices().collect { it.deviceNetworkId.minus("${thisId}-") }
+            debug("[d:initialize] childIds: ${childIds}")
+            def vehicles = childIds.findAll { it.split("-").size() == 1 }
+            debug("[d:initialize] Schedule proximity check for children ${vehicles.inspect()}")
+            for( vehicle in vehicles ) {
+                startProximityCheck([vehicleId: vehicle])
+            }
+            getChildDevices().collect{ it.deviceNetworkId }.
+                // Keep known vehicles
+                minus(childIds.collect {[thisId, it].join("-")}).
+                // Keep area presence sensors for known vehicles
+                minus(childIds.collect {[it, "areaPresence"].join("-")}).
+                // Delete everything else
+                each {
+                    debug("Removing unknown child device ${it}}")
+                    deleteChildDevice(it)
+                };
         }
         connected()
     } catch(Exception e) {
@@ -237,10 +266,11 @@ def parse(String event) {
     def value = message.payload
 
     def thisId = device.deviceNetworkId
-    def cd = getChildDevice("${thisId}-${id}")
+    def childId = "${thisId}-${id}"
+    def cd = getChildDevice(childId)
     if (!cd) {
         // Child device doesn't exist; need to create it.
-        cd = addChildDevice("evequefou", "TeslaMate Vehicle", "${thisId}-${id}", [name: "TeslaMate Vehicle ${id}", isComponent: false])
+        cd = addChildDevice("evequefou", "TeslaMate Vehicle", childId, [name: "TeslaMate Vehicle ${id}", isComponent: false])
     }
 
     // Display name must be set from the parent device, not the child
@@ -254,10 +284,32 @@ def parse(String event) {
 
         def toProcess = []
         switch(property) {
+            case "latitude":
+            case "longitude":
+                if( areaPresence ) {
+                    runIn(1, "handleLocationEvent", [
+                        overwrite: true,
+                        data: [
+                            vehicleId: id
+                        ]
+                    ])
+                }
+                break
             case "geofence":
+                def newPresence = value == settings?.homeGeofence ? "present" : "not present"
+                if( areaPresence &&
+                    cd.currentValue("presence") == "present" &&
+                    newPresence == "not present" )
+                {
+                    runIn(3600, "startProximityCheck", [
+                        data: [
+                            vehicleId: id
+                        ]
+                    ])
+                }
                 toProcess.add([
                     "name": "presence",
-                    "value": value == settings?.homeGeofence ? "present" : "not present"
+                    "value": newPresence
                 ])
                 break
 
@@ -342,6 +394,93 @@ def mqttConnected() {
 
 def notMqttConnected() {
     return !mqttConnected()
+}
+
+// ========================================================
+// Area Presence
+// ========================================================
+
+def startProximityCheck(data) {
+    def vehicleId = data.vehicleId
+    // Subscribe to lat/long events
+    ["latitude", "longitude"].each {
+        def fullTopic = "${getTopicPrefix()}${vehicleId}/${it}"
+        debug("[d:startProximityCheck] full topic: ${fullTopic}")
+        interfaces.mqtt.subscribe(fullTopic)
+    }
+}
+
+def handleLocationEvent(data) {
+    def thisId = device.deviceNetworkId
+    def vehicleId = data.vehicleId
+    def cd = getChildDevice("${thisId}-${vehicleId}")
+    def carLat = cd.currentValue("latitude")
+    def carLon = cd.currentValue("longitude")
+    def homeLat = location.latitude.doubleValue()
+    def homeLon = location.longitude.doubleValue()
+
+    if( !carLat || !carLon ) {
+        debug("[d:handleLocationEvent] Don't know car location yet!");
+        return
+    }
+
+    debug("[d:handleLocationEvent] carLat: ${carLat}, carLon: ${carLon}, homeLat: ${homeLat}, homeLon: ${homeLon}")
+
+    // Unsubscribe from lat/long events
+    ["latitude", "longitude"].each {
+        interfaces.mqtt.unsubscribe("${getTopicPrefix()}${vehicleId}/${it}")
+    }
+
+    // Determine the distance from home
+    final int R = 6371; // Radius of the earth
+
+    def latDistance = Math.toRadians(homeLat - carLat);
+    def lonDistance = Math.toRadians(homeLon - carLon);
+    def a = (Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+            + Math.cos(Math.toRadians(carLat)) * Math.cos(Math.toRadians(homeLat))
+            * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2))
+    def c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    def distance = R * c; // distance in km
+
+    // If the car is within 130 km, set the area presence sensor to true
+    def areaPresenceId = "${data.vehicleId}-areaPresence"
+    def areaPresence = getChildDevice(areaPresenceId)
+    if( !areaPresence ) {
+        // Child device doesn't exist; need to create it.
+        areaPresence = addChildDevice(
+            "hubitat",
+            "Generic Component Presence Sensor",
+            areaPresenceId,
+            [name: "${cd.getLabel()} Nearby", isComponent: false]
+        )
+    }
+    areaPresence.setLabel("${cd.getLabel()} Nearby")
+    areaPresence.parse([
+        [name: "presence", value: distance < 130 ? "present" : "not present"]
+    ])
+
+    // Determine the update period, unless car is at home.
+    // (If it's at home, we'll next check an hour after it departs.)
+    if( cd.currentValue("geofence") != settings?.homeGeofence ) {
+        def numHoursAway = distance / 130
+        def timeToNextCheck = Math.max( Math.abs(numHoursAway - 1), 0.1 )
+        debug("[d:handleLocationEvent] distance: ${(int) distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
+        runIn((long) (60 * 60 * timeToNextCheck), "startProximityCheck", [
+            data: [
+                vehicleId: vehicleId
+            ]
+        ])
+    }
+    else {
+        debug("[d:handleLocationEvent] No check scheduled; car is at home")
+    }
+}
+
+def componentRefresh(child) {
+    if( child.deviceNetworkId.endsWith("-areaPresence") ) {
+        // Area presence sensor; refresh
+        startProximityCheck([vehicleId: child.deviceNetworkId.minus("-areaPresence")])
+    }
 }
 
 // ========================================================
