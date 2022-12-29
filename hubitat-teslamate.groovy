@@ -202,6 +202,16 @@ void initialize() {
             for( vehicle in vehicles ) {
                 startProximityCheck([vehicleId: vehicle])
             }
+            getChildDevices().collect{ it.deviceNetworkId }.
+                // Keep known vehicles
+                minus(childIds.collect {[thisId, it].join("-")}).
+                // Keep area presence sensors for known vehicles
+                minus(childIds.collect {[it, "areaPresence"].join("-")}).
+                // Delete everything else
+                each {
+                    debug("Removing unknown child device ${it}}")
+                    deleteChildDevice(it)
+                };
         }
         connected()
     } catch(Exception e) {
@@ -408,6 +418,11 @@ def handleLocationEvent(data) {
     def carLon = cd.currentValue("longitude")
     def homeLat = location.latitude.doubleValue()
     def homeLon = location.longitude.doubleValue()
+
+    if( !carLat || !carLon ) {
+        debug("[d:handleLocationEvent] Don't know car location yet!");
+        return
+    }
 
     debug("[d:handleLocationEvent] carLat: ${carLat}, carLon: ${carLon}, homeLat: ${homeLat}, homeLon: ${homeLon}")
 
