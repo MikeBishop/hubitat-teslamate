@@ -119,12 +119,13 @@ do can probably be done by defining a geofence in TeslaMate instead.
 
 # Change Log
 
-* [4/15/2022] Initial release
-* [4/25/2022] Filter small changes (<100W) in power levels to reduce event
-  frequency
-* [5/4/2022]  Reconnect every 24 hours; attempt to catch connection loss and
+* [4/15/2022]  Initial release
+* [4/25/2022]  Filter small changes (<100W) in power levels to reduce event
+  frequency 
+* [5/4/2022]   Reconnect every 24 hours; attempt to catch connection loss and
   reconnect
-* [5/15/2022] Bugfixes
-* [6/7/2022]  Fix bug that caused "power" not to publish consistently
-* [6/13/2022] Remove `charge_energy_added` to reduce event load
-* [8/17/2022] Fix bug in disconnect error handling
+* [5/15/2022]  Bugfixes
+* [6/7/2022]   Fix bug that caused "power" not to publish consistently
+* [6/13/2022]  Remove `charge_energy_added` to reduce event load
+* [8/17/2022]  Fix bug in disconnect error handling
+* [12/28/2022] Add optional "nearby" presence sensor
