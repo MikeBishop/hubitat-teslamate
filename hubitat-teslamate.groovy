@@ -436,7 +436,7 @@ def handleLocationEvent(data) {
             "hubitat",
             "Generic Component Presence Sensor",
             areaPresenceId,
-            [name: "${cd.getLabel()} Nearby", isComponent: true]
+            [name: "${cd.getLabel()} Nearby", isComponent: false]
         )
     }
     areaPresence.setLabel("${cd.getLabel()} Nearby")
@@ -462,7 +462,10 @@ def handleLocationEvent(data) {
 }
 
 def componentRefresh(child) {
-    return
+    if( child.deviceNetworkId.endsWith("-areaPresence") ) {
+        // Area presence sensor; refresh
+        startProximityCheck([vehicleId: child.deviceNetworkId.minus("-areaPresence")])
+    }
 }
 
 // ========================================================
