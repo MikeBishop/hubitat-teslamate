@@ -204,9 +204,9 @@ void initialize() {
             }
             getChildDevices().collect{ it.deviceNetworkId }.
                 // Keep known vehicles
-                minus(childIds.collect {[thisId, it].join("-")}).
+                minus(vehicles.collect {[thisId, it].join("-")}).
                 // Keep area presence sensors for known vehicles
-                minus(childIds.collect {[it, "areaPresence"].join("-")}).
+                minus(vehicles.collect {[thisId, it, "areaPresence"].join("-")}).
                 // Delete everything else
                 each {
                     debug("Removing unknown child device ${it}}")
@@ -451,7 +451,7 @@ def handleLocationEvent(data) {
     def distance = R * c; // distance in km
 
     // If the car is within 130 km, set the area presence sensor to true
-    def areaPresenceId = "${data.vehicleId}-areaPresence"
+    def areaPresenceId = [thisId, data.vehicleId, "areaPresence"].join("-")
     def areaPresence = getChildDevice(areaPresenceId)
     if( !areaPresence ) {
         // Child device doesn't exist; need to create it.
@@ -487,7 +487,11 @@ def handleLocationEvent(data) {
 def componentRefresh(child) {
     if( child.deviceNetworkId.endsWith("-areaPresence") ) {
         // Area presence sensor; refresh
-        startProximityCheck([vehicleId: child.deviceNetworkId.minus("-areaPresence")])
+        startProximityCheck([
+            vehicleId: child.deviceNetworkId.
+                        minus("${device.deviceNetworkId}-").
+                        minus("-areaPresence")
+        ]);
     }
 }
 
