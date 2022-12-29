@@ -213,6 +213,14 @@ void initialize() {
                     deleteChildDevice(it)
                 };
         }
+        else {
+            // Remove all area presence sensors
+            getChildDevices().findAll { it.deviceNetworkId.endsWith("-areaPresence") }.
+                each {
+                    debug("Removing area presence sensor ${it.deviceNetworkId}}")
+                    deleteChildDevice(it.deviceNetworkId)
+                };
+        }
         connected()
     } catch(Exception e) {
         error("[d:initialize] ${e}")
