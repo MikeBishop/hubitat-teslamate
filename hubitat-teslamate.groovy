@@ -428,7 +428,7 @@ def handleLocationEvent(data) {
     def distance = R * c; // distance in km
 
     // If the car is within 130 km, set the area presence sensor to true
-    def areaPresenceId = "${data.childId}-areaPresence"
+    def areaPresenceId = "${data.vehicleId}-areaPresence"
     def areaPresence = getChildDevice(areaPresenceId)
     if( !areaPresence ) {
         // Child device doesn't exist; need to create it.
