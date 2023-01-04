@@ -326,10 +326,10 @@ def parse(String event) {
                 value = Float.parseFloat(value)
                 if( settings?.tempFormat == "Fahrenheit (°F)" ) {
                     // Convert temperature formats
-                    value = celsiusToFahrenheit(value)
+                    value = celsiusToFahrenheit(value).floatValue();
                 }
                 value = value.round(1)
-                if( settings?.temperatureIndoor ^ property == "outside_temp" ) {
+                if( (settings?.temperatureIndoor == "Indoor") ^ (property == "outside_temp") ) {
                     toProcess.add([
                         "name": "temperature",
                         "value": value
