@@ -150,6 +150,15 @@ metadata {
             required: false,
             default: false
         )
+        if( areaPresence ) {
+            input(
+                name: "areaPresenceRadius",
+                type: "number",
+                title: "Radius for area presence device (in km)",
+                required: false,
+                default: "130"
+            )
+        }
         input(
             name: "debugLogging",
             type: "bool",
@@ -230,6 +239,9 @@ void initialize() {
 
 void updated() {
     disconnect()
+    if( areaPresenceRadius == null ) {
+        device.updateSetting("areaPresenceRadius", [value: 130, type: "number"])
+    }
     initialize()
 }
 
@@ -309,7 +321,7 @@ def parse(String event) {
                     cd.currentValue("presence") == "present" &&
                     newPresence == "not present" )
                 {
-                    runIn(3600, "startProximityCheck", [
+                    runIn(areaPresenceRadius / 130, "startProximityCheck", [
                         data: [
                             vehicleId: id
                         ]
@@ -450,7 +462,7 @@ def handleLocationEvent(data) {
     def c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     def distance = R * c; // distance in km
 
-    // If the car is within 130 km, set the area presence sensor to true
+    // If the car is within the specified radius, set the area presence sensor to true
     def areaPresenceId = [thisId, data.vehicleId, "areaPresence"].join("-")
     def areaPresence = getChildDevice(areaPresenceId)
     if( !areaPresence ) {
@@ -464,14 +476,14 @@ def handleLocationEvent(data) {
     }
     areaPresence.setLabel("${cd.getLabel()} Nearby")
     areaPresence.parse([
-        [name: "presence", value: distance < 130 ? "present" : "not present"]
+        [name: "presence", value: distance < areaPresenceRadius ? "present" : "not present"]
     ])
 
     // Determine the update period, unless car is at home.
     // (If it's at home, we'll next check an hour after it departs.)
     if( cd.currentValue("geofence") != settings?.homeGeofence ) {
         def numHoursAway = distance / 130
-        def timeToNextCheck = Math.max( Math.abs(numHoursAway - 1), 0.1 )
+        def timeToNextCheck = Math.max( Math.abs(numHoursAway - areaPresenceRadius / 130), 0.1 )
         debug("[d:handleLocationEvent] distance: ${(int) distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
         runIn((long) (60 * 60 * timeToNextCheck), "startProximityCheck", [
             data: [
