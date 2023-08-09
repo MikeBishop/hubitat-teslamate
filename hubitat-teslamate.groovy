@@ -321,7 +321,7 @@ def parse(String event) {
                     cd.currentValue("presence") == "present" &&
                     newPresence == "not present" )
                 {
-                    runIn(areaPresenceRadius / 130, "startProximityCheck", [
+                    runIn(3600 * areaPresenceRadius / 130, "startProximityCheck", [
                         data: [
                             vehicleId: id
                         ]
