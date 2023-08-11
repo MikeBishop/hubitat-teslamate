@@ -239,7 +239,7 @@ void initialize() {
 
 void updated() {
     disconnect()
-    if( areaPresenceRadius == null ) {
+    if( !areaPresenceRadius ) {
         device.updateSetting("areaPresenceRadius", [value: 130, type: "number"])
     }
     initialize()
@@ -321,7 +321,7 @@ def parse(String event) {
                     cd.currentValue("presence") == "present" &&
                     newPresence == "not present" )
                 {
-                    runIn(3600 * areaPresenceRadius / 130, "startProximityCheck", [
+                    runIn((3600 * areaPresenceRadius / 130).intValue(), "startProximityCheck", [
                         data: [
                             vehicleId: id
                         ]
@@ -366,6 +366,7 @@ def parse(String event) {
         }
         toProcess.add([name: property, value: value])
 
+        debug "Sending ${toProcess.inspect()} to child device ${cd.getLabel()}}"
         cd.parse(toProcess)
     }
 }
