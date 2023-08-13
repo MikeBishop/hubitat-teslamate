@@ -257,6 +257,8 @@ def disconnect() {
 
 def reconnect() {
     disconnect()
+    if( !state.reconnectDelay )
+        state.reconnectDelay = 1
     runIn(state.reconnectDelay, "connect")
     state.reconnectDelay *= 2
 }
