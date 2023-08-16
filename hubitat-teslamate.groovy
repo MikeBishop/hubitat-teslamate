@@ -323,11 +323,7 @@ def parse(String event) {
                     cd.currentValue("presence") == "present" &&
                     newPresence == "not present" )
                 {
-                    runIn((3600 * areaPresenceRadius / 130).intValue(), "startProximityCheck", [
-                        data: [
-                            vehicleId: id
-                        ]
-                    ])
+                    schedule_next_check(0, id);
                 }
                 toProcess.add([
                     "name": "presence",
@@ -485,18 +481,22 @@ def handleLocationEvent(data) {
     // Determine the update period, unless car is at home.
     // (If it's at home, we'll next check an hour after it departs.)
     if( cd.currentValue("geofence") != settings?.homeGeofence ) {
-        def numHoursAway = distance / 130
-        def timeToNextCheck = Math.max( Math.abs(numHoursAway - areaPresenceRadius / 130), 0.1 )
-        debug("[d:handleLocationEvent] distance: ${(int) distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
+        schedule_next_check(distance, vehicleId)
+    }
+    else {
+        debug("[d:handleLocationEvent] No check scheduled; car is at home")
+    }
+}
+
+def schedule_next_check(distance, vehicleId) {
+        def travelDistance = Math.abs(distance - areaPresenceRadius)
+        def timeToNextCheck = Math.max(travelDistance / 130, 0.1 )
+        debug("[d:schedule_next_check] distance: ${(int) distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
         runIn((long) (60 * 60 * timeToNextCheck), "startProximityCheck", [
             data: [
                 vehicleId: vehicleId
             ]
         ])
-    }
-    else {
-        debug("[d:handleLocationEvent] No check scheduled; car is at home")
-    }
 }
 
 def componentRefresh(child) {
