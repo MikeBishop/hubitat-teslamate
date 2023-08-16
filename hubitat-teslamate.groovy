@@ -445,9 +445,11 @@ def handleLocationEvent(data) {
 
     debug("[d:handleLocationEvent] carLat: ${carLat}, carLon: ${carLon}, homeLat: ${homeLat}, homeLon: ${homeLon}")
 
-    // Unsubscribe from lat/long events
-    ["latitude", "longitude"].each {
-        interfaces.mqtt.unsubscribe("${getTopicPrefix()}${vehicleId}/${it}")
+    if( !showDetailedDriving ) {
+        // Unsubscribe from lat/long events
+        ["latitude", "longitude"].each {
+            interfaces.mqtt.unsubscribe("${getTopicPrefix()}${vehicleId}/${it}")
+        }
     }
 
     // Determine the distance from home
