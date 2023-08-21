@@ -150,6 +150,15 @@ metadata {
             required: false,
             default: false
         )
+        if( areaPresence ) {
+            input(
+                name: "areaPresenceRadius",
+                type: "number",
+                title: "Radius for area presence device (in km)",
+                required: false,
+                default: "130"
+            )
+        }
         input(
             name: "debugLogging",
             type: "bool",
@@ -230,6 +239,9 @@ void initialize() {
 
 void updated() {
     disconnect()
+    if( !areaPresenceRadius ) {
+        device.updateSetting("areaPresenceRadius", [value: 130, type: "number"])
+    }
     initialize()
 }
 
@@ -311,11 +323,7 @@ def parse(String event) {
                     cd.currentValue("presence") == "present" &&
                     newPresence == "not present" )
                 {
-                    runIn(3600, "startProximityCheck", [
-                        data: [
-                            vehicleId: id
-                        ]
-                    ])
+                    schedule_next_check(0, id);
                 }
                 toProcess.add([
                     "name": "presence",
@@ -356,6 +364,7 @@ def parse(String event) {
         }
         toProcess.add([name: property, value: value])
 
+        debug "Sending ${toProcess.inspect()} to child device ${cd.getLabel()}}"
         cd.parse(toProcess)
     }
 }
@@ -436,9 +445,11 @@ def handleLocationEvent(data) {
 
     debug("[d:handleLocationEvent] carLat: ${carLat}, carLon: ${carLon}, homeLat: ${homeLat}, homeLon: ${homeLon}")
 
-    // Unsubscribe from lat/long events
-    ["latitude", "longitude"].each {
-        interfaces.mqtt.unsubscribe("${getTopicPrefix()}${vehicleId}/${it}")
+    if( !showDetailedDriving ) {
+        // Unsubscribe from lat/long events
+        ["latitude", "longitude"].each {
+            interfaces.mqtt.unsubscribe("${getTopicPrefix()}${vehicleId}/${it}")
+        }
     }
 
     // Determine the distance from home
@@ -452,7 +463,7 @@ def handleLocationEvent(data) {
     def c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     def distance = R * c; // distance in km
 
-    // If the car is within 130 km, set the area presence sensor to true
+    // If the car is within the specified radius, set the area presence sensor to true
     def areaPresenceId = [thisId, data.vehicleId, "areaPresence"].join("-")
     def areaPresence = getChildDevice(areaPresenceId)
     if( !areaPresence ) {
@@ -466,24 +477,28 @@ def handleLocationEvent(data) {
     }
     areaPresence.setLabel("${cd.getLabel()} Nearby")
     areaPresence.parse([
-        [name: "presence", value: distance < 130 ? "present" : "not present"]
+        [name: "presence", value: distance < areaPresenceRadius ? "present" : "not present"]
     ])
 
     // Determine the update period, unless car is at home.
     // (If it's at home, we'll next check an hour after it departs.)
     if( cd.currentValue("geofence") != settings?.homeGeofence ) {
-        def numHoursAway = distance / 130
-        def timeToNextCheck = Math.max( Math.abs(numHoursAway - 1), 0.1 )
-        debug("[d:handleLocationEvent] distance: ${(int) distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
+        schedule_next_check(distance, vehicleId)
+    }
+    else {
+        debug("[d:handleLocationEvent] No check scheduled; car is at home")
+    }
+}
+
+def schedule_next_check(distance, vehicleId) {
+        def travelDistance = Math.abs(distance - areaPresenceRadius)
+        def timeToNextCheck = Math.max(travelDistance / 130, 0.1 )
+        debug("[d:schedule_next_check] distance: ${(int) distance} km, check in ${(int) (60 * timeToNextCheck)} minutes")
         runIn((long) (60 * 60 * timeToNextCheck), "startProximityCheck", [
             data: [
                 vehicleId: vehicleId
             ]
         ])
-    }
-    else {
-        debug("[d:handleLocationEvent] No check scheduled; car is at home")
-    }
 }
 
 def componentRefresh(child) {

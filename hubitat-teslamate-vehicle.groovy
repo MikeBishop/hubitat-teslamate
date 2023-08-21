@@ -153,6 +153,12 @@ void parse(List description) {
                 ])
                 sendEvent(it)
                 break
+            case "geofence":
+                sendEvent([
+                    "name": it.name,
+                    "value": it.value ?: "unknown"
+                ]);
+                break
             default:
                 sendEvent(it)
                 break
