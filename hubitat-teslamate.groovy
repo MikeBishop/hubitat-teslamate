@@ -86,7 +86,7 @@ metadata {
             input(
                 name: "showClimate",
                 type: "bool",
-                title: "Expose climate and temperature details",
+                title: "Expose tire and temperature details",
                 required: false,
                 default: false
             )
@@ -130,6 +130,14 @@ metadata {
                     defaultValue: "Fahrenheit (°F)",
                     title: "Display Unit - Temperature: Fahrenheit (°F) or Celsius (°C)",
                     options: ["Fahrenheit (°F)", "Celsius (°C)"]
+                )
+                input(
+                    name: "pressureFormat",
+                    type: "enum",
+                    required: true,
+                    defaultValue: "psi",
+                    title: "Display Unit - Pressure: psi or bar",
+                    options: ["psi", "bar"]
                 )
             }
             if( showCoarseDriving || showDetailedDriving ) {
@@ -347,6 +355,17 @@ def parse(String event) {
                 }
                 break
 
+            case "tpms_pressure_fl":
+            case "tpms_pressure_fr":
+            case "tpms_pressure_rl":
+            case "tpms_pressure_rr":
+                value = Float.parseFloat(value)
+                if( !settings?.pressureFormat || settings?.pressureFormat == "psi" ) {
+                    // Convert pressure formats
+                    value = value * 14.503773773
+                    value = value.round(1)
+                }
+                break
             case "lock":
                 value = value == "true" ? "locked" : "unlocked"
                 break
@@ -568,7 +587,11 @@ def error(msg) {
     "is_climate_on",
     "inside_temp",
     "outside_temp",
-    "is_preconditioning"
+    "is_preconditioning",
+    "tpms_pressure_fl",
+    "tpms_pressure_fr",
+    "tpms_pressure_rl",
+    "tpms_pressure_rr"
 ]
 
 // Security

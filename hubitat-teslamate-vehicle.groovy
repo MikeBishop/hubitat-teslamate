@@ -45,6 +45,10 @@ metadata {
         attribute "inside_temp", "NUMBER"
         attribute "outside_temp", "NUMBER"
         attribute "is_preconditioning", "ENUM", ["true", "false"]
+        attribute "tpms_pressure_fl", "NUMBER"
+        attribute "tpms_pressure_fr", "NUMBER"
+        attribute "tpms_pressure_rl", "NUMBER"
+        attribute "tpms_pressure_rr", "NUMBER"
 
 // Security
         capability "ContactSensor"
