@@ -92,6 +92,7 @@ The groups are:
    - attribute "inside_temp"
    - attribute "outside_temp"
    - attribute "is_preconditioning"
+   - attributes "tpms_pressure_[fr][lr]"
 
 - Security
    - capability "ContactSensor"
@@ -129,3 +130,5 @@ do can probably be done by defining a geofence in TeslaMate instead.
 * [6/13/2022]  Remove `charge_energy_added` to reduce event load
 * [8/17/2022]  Fix bug in disconnect error handling
 * [12/28/2022] Add optional "nearby" presence sensor
+* [8/21/2023]  Configurable radius for Nearby presence sensor + bugfixes
+* [9/1/2023]   Expose TPMS measurements as part of climate data
