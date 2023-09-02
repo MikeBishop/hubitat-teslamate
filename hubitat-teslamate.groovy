@@ -86,7 +86,7 @@ metadata {
             input(
                 name: "showClimate",
                 type: "bool",
-                title: "Expose tire and temperature details",
+                title: "Expose climate and tire details",
                 required: false,
                 default: false
             )
