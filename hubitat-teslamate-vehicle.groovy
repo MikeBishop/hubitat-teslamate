@@ -1,6 +1,6 @@
 /*
     Hubitat-TeslaMate MQTT Integration, Vehicle Instance
-    Copyright 2022 Mike Bishop,  All Rights Reserved
+    Copyright 2022-2025 Mike Bishop,  All Rights Reserved
 */
 import groovy.transform.Field
 
@@ -24,6 +24,7 @@ metadata {
         attribute "update_version", "STRING"
         attribute "scheduled_charging_start_time", "DATE"
         attribute "time_to_full_charge", "NUMBER"
+        attribute "is_user_present", "ENUM", ["true", "false"]
 
 // Power and Charging Details
         capability "VoltageMeasurement"

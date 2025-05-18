@@ -1,6 +1,6 @@
 /*
     Hubitat-TeslaMate MQTT Integration
-    Copyright 2022 Mike Bishop,  All Rights Reserved
+    Copyright 2022-2025 Mike Bishop,  All Rights Reserved
 
     Based on:
         - MQTT Link Driver by jeubanks, https://github.com/mydevbox/hubitat-mqtt-link
@@ -564,7 +564,8 @@ def error(msg) {
     "update_available",
     "update_version",
     "scheduled_charging_start_time",
-    "time_to_full_charge"
+    "time_to_full_charge",
+    "is_user_present"
 ]
 
 // Power and Charging Details
