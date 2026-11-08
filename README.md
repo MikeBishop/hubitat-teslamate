@@ -72,6 +72,7 @@ The groups are:
    - attribute "update_version"
    - attribute "scheduled_charging_start_time"
    - attribute "time_to_full_charge"
+   - attribute "is_user_present"
 
 - Power and Charging Details
    - capability "VoltageMeasurement"
@@ -106,6 +107,12 @@ The groups are:
 - Coarse Driving
    - attribute "shift_state"
    - attribute "odometer"
+   - attribute "navigating"
+   - attributes "active_route_destination", "active_route_energy_at_arrival",
+     "active_route_distance_to_arrival", "active_route_minutes_to_arrival",
+     "active_route_traffic_minutes_delay", "active_route_latitude", and
+     "active_route_longitude" (from TeslaMate's `active_route`; cleared when
+     not navigating)
 
 - Detailed Location & Driving
    - attribute "latitude"
@@ -132,3 +139,6 @@ do can probably be done by defining a geofence in TeslaMate instead.
 * [12/28/2022] Add optional "nearby" presence sensor
 * [8/21/2023]  Configurable radius for Nearby presence sensor + bugfixes
 * [9/1/2023]   Expose TPMS measurements as part of climate data
+* [11/8/2026]  Use TeslaMate's `location` topic instead of the deprecated
+  `latitude`/`longitude` topics; expose navigation details from `active_route`
+  as part of Coarse Driving
