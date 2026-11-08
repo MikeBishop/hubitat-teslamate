@@ -448,15 +448,27 @@ def getTopicPrefix() {
     return "teslamate/cars/"
 }
 
-// Expand the active_route JSON blob into individual attributes
+// Expand the active_route JSON blob into individual attributes.
+// When not navigating, Hubitat ignores null values, so use explicit
+// placeholders: empty destination and -1 for numbers.
 def parseActiveRoute(String value) {
     def route = value ? parseJson(value) : null
     def navigating = route != null && route.error == null && route.destination != null
     if( !navigating ) {
         debug("[d:parseActiveRoute] No active route: ${route?.error}")
+        return [
+            [name: "navigating", value: "false"],
+            [name: "active_route_destination", value: ""],
+            [name: "active_route_energy_at_arrival", value: -1],
+            [name: "active_route_distance_to_arrival", value: -1],
+            [name: "active_route_minutes_to_arrival", value: -1],
+            [name: "active_route_traffic_minutes_delay", value: -1],
+            [name: "active_route_latitude", value: -1],
+            [name: "active_route_longitude", value: -1]
+        ]
     }
 
-    def distance = navigating ? route.miles_to_arrival : null
+    def distance = route.miles_to_arrival
     if( distance != null ) {
         if( settings?.rangeFormat != "miles (mi)" ) {
             distance = distance * 1.609344
@@ -465,14 +477,14 @@ def parseActiveRoute(String value) {
     }
 
     return [
-        [name: "navigating", value: navigating ? "true" : "false"],
-        [name: "active_route_destination", value: navigating ? route.destination : null],
-        [name: "active_route_energy_at_arrival", value: navigating ? route.energy_at_arrival : null],
+        [name: "navigating", value: "true"],
+        [name: "active_route_destination", value: route.destination],
+        [name: "active_route_energy_at_arrival", value: route.energy_at_arrival],
         [name: "active_route_distance_to_arrival", value: distance],
-        [name: "active_route_minutes_to_arrival", value: navigating ? route.minutes_to_arrival?.toFloat()?.round() : null],
-        [name: "active_route_traffic_minutes_delay", value: navigating ? route.traffic_minutes_delay?.toFloat()?.round() : null],
-        [name: "active_route_latitude", value: navigating ? route.location?.latitude : null],
-        [name: "active_route_longitude", value: navigating ? route.location?.longitude : null]
+        [name: "active_route_minutes_to_arrival", value: route.minutes_to_arrival?.toFloat()?.round()],
+        [name: "active_route_traffic_minutes_delay", value: route.traffic_minutes_delay?.toFloat()?.round()],
+        [name: "active_route_latitude", value: route.location?.latitude],
+        [name: "active_route_longitude", value: route.location?.longitude]
     ]
 }
 
