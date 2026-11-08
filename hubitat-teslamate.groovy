@@ -314,17 +314,35 @@ def parse(String event) {
 
         def toProcess = []
         switch(property) {
-            case "latitude":
-            case "longitude":
-                if( areaPresence ) {
-                    runIn(1, "handleLocationEvent", [
-                        overwrite: true,
-                        data: [
-                            vehicleId: id
-                        ]
+            case "location":
+                def loc = parseJson(value)
+                def lat = loc?.latitude
+                def lon = loc?.longitude
+                property = null
+                if( lat == null || lon == null ) {
+                    debug("[d:parse] Ignoring incomplete location: ${value}")
+                    break
+                }
+                if( showDetailedDriving ) {
+                    toProcess.add([name: "latitude", value: lat])
+                    toProcess.add([name: "longitude", value: lon])
+                }
+                if( areaPresence && state.pendingProximity?.get(id) ) {
+                    // Only answer a proximity check that asked for a location
+                    state.pendingProximity = state.pendingProximity.findAll { it.key != id }
+                    handleLocationEvent([
+                        vehicleId: id,
+                        latitude: lat.doubleValue(),
+                        longitude: lon.doubleValue()
                     ])
                 }
                 break
+
+            case "active_route":
+                toProcess.addAll(parseActiveRoute(value))
+                property = null
+                break
+
             case "geofence":
                 def newPresence = value == settings?.homeGeofence ? "present" : "not present"
                 if( areaPresence &&
@@ -381,10 +399,14 @@ def parse(String event) {
                 value = value.round()
                 break
         }
-        toProcess.add([name: property, value: value])
+        if( property ) {
+            toProcess.add([name: property, value: value])
+        }
 
-        debug "Sending ${toProcess.inspect()} to child device ${cd.getLabel()}}"
-        cd.parse(toProcess)
+        if( toProcess ) {
+            debug "Sending ${toProcess.inspect()} to child device ${cd.getLabel()}}"
+            cd.parse(toProcess)
+        }
     }
 }
 
@@ -426,6 +448,34 @@ def getTopicPrefix() {
     return "teslamate/cars/"
 }
 
+// Expand the active_route JSON blob into individual attributes
+def parseActiveRoute(String value) {
+    def route = value ? parseJson(value) : null
+    def navigating = route != null && route.error == null && route.destination != null
+    if( !navigating ) {
+        debug("[d:parseActiveRoute] No active route: ${route?.error}")
+    }
+
+    def distance = navigating ? route.miles_to_arrival : null
+    if( distance != null ) {
+        if( settings?.rangeFormat != "miles (mi)" ) {
+            distance = distance * 1.609344
+        }
+        distance = distance.toFloat().round(1)
+    }
+
+    return [
+        [name: "navigating", value: navigating ? "true" : "false"],
+        [name: "active_route_destination", value: navigating ? route.destination : null],
+        [name: "active_route_energy_at_arrival", value: navigating ? route.energy_at_arrival : null],
+        [name: "active_route_distance_to_arrival", value: distance],
+        [name: "active_route_minutes_to_arrival", value: navigating ? route.minutes_to_arrival?.toFloat()?.round() : null],
+        [name: "active_route_traffic_minutes_delay", value: navigating ? route.traffic_minutes_delay?.toFloat()?.round() : null],
+        [name: "active_route_latitude", value: navigating ? route.location?.latitude : null],
+        [name: "active_route_longitude", value: navigating ? route.location?.longitude : null]
+    ]
+}
+
 def mqttConnected() {
     return interfaces.mqtt.isConnected()
 }
@@ -440,9 +490,29 @@ def notMqttConnected() {
 
 def startProximityCheck(data) {
     def vehicleId = data.vehicleId
-    // Subscribe to lat/long events
-    ["latitude", "longitude"].each {
-        def fullTopic = "${getTopicPrefix()}${vehicleId}/${it}"
+
+    if( showDetailedDriving ) {
+        // Already subscribed to location; use the current value if known
+        def cd = getChildDevice("${device.deviceNetworkId}-${vehicleId}")
+        def carLat = cd?.currentValue("latitude")
+        def carLon = cd?.currentValue("longitude")
+        if( carLat != null && carLon != null ) {
+            handleLocationEvent([
+                vehicleId: vehicleId,
+                latitude: carLat.doubleValue(),
+                longitude: carLon.doubleValue()
+            ])
+            return
+        }
+        debug("[d:startProximityCheck] Location not yet known; waiting for next update")
+    }
+
+    // Process the next location update for this vehicle
+    state.pendingProximity = (state.pendingProximity ?: [:]) + [(vehicleId): true]
+
+    if( !showDetailedDriving ) {
+        // Subscribe to location events
+        def fullTopic = "${getTopicPrefix()}${vehicleId}/location"
         debug("[d:startProximityCheck] full topic: ${fullTopic}")
         interfaces.mqtt.subscribe(fullTopic)
     }
@@ -452,23 +522,16 @@ def handleLocationEvent(data) {
     def thisId = device.deviceNetworkId
     def vehicleId = data.vehicleId
     def cd = getChildDevice("${thisId}-${vehicleId}")
-    def carLat = cd.currentValue("latitude")
-    def carLon = cd.currentValue("longitude")
+    def carLat = data.latitude
+    def carLon = data.longitude
     def homeLat = location.latitude.doubleValue()
     def homeLon = location.longitude.doubleValue()
-
-    if( !carLat || !carLon ) {
-        debug("[d:handleLocationEvent] Don't know car location yet!");
-        return
-    }
 
     debug("[d:handleLocationEvent] carLat: ${carLat}, carLon: ${carLon}, homeLat: ${homeLat}, homeLon: ${homeLon}")
 
     if( !showDetailedDriving ) {
-        // Unsubscribe from lat/long events
-        ["latitude", "longitude"].each {
-            interfaces.mqtt.unsubscribe("${getTopicPrefix()}${vehicleId}/${it}")
-        }
+        // Unsubscribe from location events
+        interfaces.mqtt.unsubscribe("${getTopicPrefix()}${vehicleId}/location")
     }
 
     // Determine the distance from home
@@ -608,7 +671,8 @@ def error(msg) {
 // Coarse Location & Driving
 @Field static final List CoarseDriving = [
     "shift_state",
-    "odometer"
+    "odometer",
+    "active_route"
 ]
 
 // Detailed Location & Driving
@@ -617,8 +681,7 @@ def error(msg) {
 // What you want to do can probably be done
 // by defining a geofence in TeslaMate instead.
 @Field static final List BadIdeas = [
-    "latitude",
-    "longitude",
+    "location",
     "speed",
     "heading",
     "elevation"

@@ -63,6 +63,14 @@ metadata {
 // Coarse Location & Driving
         attribute "shift_state", "STRING"
         attribute "odometer", "NUMBER"
+        attribute "navigating", "ENUM", ["true", "false"]
+        attribute "active_route_destination", "STRING"
+        attribute "active_route_energy_at_arrival", "NUMBER"
+        attribute "active_route_distance_to_arrival", "NUMBER"
+        attribute "active_route_minutes_to_arrival", "NUMBER"
+        attribute "active_route_traffic_minutes_delay", "NUMBER"
+        attribute "active_route_latitude", "NUMBER"
+        attribute "active_route_longitude", "NUMBER"
 
 // Detailed Location & Driving
 // WARNING:  These are exceptionally chatty;
